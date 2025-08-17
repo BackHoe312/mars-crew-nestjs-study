@@ -14,8 +14,6 @@ async function bootstrap() {
     transform: true,
   }));
 
-  console.log("err: " + process.env.DB_HOST);
-
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
