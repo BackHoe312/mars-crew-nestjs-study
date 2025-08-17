@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Contact } from '../domain/contact.entity';
 import { Repository } from 'typeorm';
 import { ContactRepository } from '../repository/contact.repository';
+import { SearchContactDto } from '../dto/response/search-contact.dto';
 
 @Injectable()
 export class ContactService {
@@ -17,8 +18,16 @@ export class ContactService {
     return await this.contactRepository.createContact(dto);
   }
 
-  async findAllByQuery(query: {name?: string; phone?: string}) {
-    return this.contactRepository.findAllByQuery(query);
+  async findAllByQuery(query: SearchContactDto) {
+    const [data, total] = await this.contactRepository.findAllByPaging(query);
+
+    return {
+      data,
+      total,
+      page: query.page || 1,
+      limit: query.limit || 10,
+      totalPages: Math.ceil(total / (query.limit || 10)),
+    }
   }
 
   async findOneByPhone(phone: string) {
@@ -35,7 +44,6 @@ export class ContactService {
 
     if (result.affected === 0)
       throw new NotFoundException("존재하지 않거나 이미 삭제된 전화번호입니다.");
-
   }
 
   async deleteByPhones(phones: string[]) {
@@ -67,16 +75,4 @@ export class ContactService {
 
     await this.contactRepository.updatePhone(id, dto);
   }
-
-  // async findAll() {
-  //   return await this.contactRepository.find({ order: { id: 'ASC'} });
-  // }
-
-  // async findAllByName(name: string) {
-  //   return this.contactRepository.findAllByName(name);
-  // }
-
-  // async findAllByPhone(phone: string) {
-  //   return this.contactRepository.findAllByPhone(phone);
-  // }
 }

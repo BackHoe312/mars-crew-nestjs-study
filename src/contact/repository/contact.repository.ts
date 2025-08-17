@@ -4,6 +4,7 @@ import { CustomRepository } from "src/common/typeorm-ex.decorator";
 import { BadRequestException, ConflictException } from "@nestjs/common";
 import { UpdateContactDto } from "../dto/request/update-contact.dto";
 import { CreateContactDto } from "../dto/request/create-contact.dto";
+import { SearchContactDto } from "../dto/response/search-contact.dto";
 
 @CustomRepository(Contact)
 export class ContactRepository extends Repository<Contact> {
@@ -42,42 +43,29 @@ export class ContactRepository extends Repository<Contact> {
         return contact ? contact.id : null;
     }
 
-    // async findAllByName(name: string): Promise<Contact[]> {
-    //     const qb = this.createQueryBuilder('c');
-
-    //     qb.andWhere('LOWER(c.name) LIKE LOWER(:name)', {name: `%${name}%`});
-
-    //     return await qb.getMany();
-    // }
-
-    // async findAllByPhone(phone: string): Promise<Contact[]> {
-    //     const qb = this.createQueryBuilder('c');
-
-    //     qb.where('c.phone LIKE (:phone)', {phone: `%${phone}%`});
-
-    //     return await qb.getMany();
-    // }
-
     /**
      * 이름 또는 전화번호를 이용한 조회
      * @param param0 name, phone
      * @returns 
      */
-    async findAllByQuery({
-        name,
-        phone,
-    }: {
-        name?: string;
-        phone?: string;
-    }): Promise<Contact[]> {
+    async findAllByPaging(query: SearchContactDto): Promise<[Contact[], number]> {
+        const { name, phone, page = 1, limit = 10 } = query;
+
         const qb = this.createQueryBuilder('c');
 
         if (name)
             qb.andWhere('LOWER(c.name) LIKE LOWER(:name)', { name: `%${name}%`});
         if (phone)
             qb.andWhere('c.phone LIKE :phone', { phone: `%${phone}%`});
+
+        qb.skip((page - 1) * limit)
+            .take(limit)
+            .orderBy('c.id', 'ASC');
+
+        const [data, total] = await qb.getManyAndCount();
+        const totalPages = Math.ceil(total / limit);
         
-        return await qb.getMany();
+        return await qb.getManyAndCount();
     }
 
     async findOneByPhone(phone: string): Promise<Contact | null> {
@@ -91,13 +79,6 @@ export class ContactRepository extends Repository<Contact> {
     async softDeleteContact(id: number) {
         return await this.softDelete(id);
     }
-
-    // async softDeleteByPhone(phone: string): Promise<void> {
-    //     await await this.createQueryBuilder()
-    //         .softDelete()
-    //         .where('phone = :phone', {phone})
-    //         .execute()
-    // }
 
     /**
      * 전화번호 다중 소프트 삭제
