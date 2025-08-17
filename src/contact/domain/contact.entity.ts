@@ -24,7 +24,6 @@ export class Contact {
 
     @CreateDateColumn({
         type: 'datetime',
-        default: () => 'CURRENT_TIMESTAMP',
         nullable: false
     })
     createAt: Date;
