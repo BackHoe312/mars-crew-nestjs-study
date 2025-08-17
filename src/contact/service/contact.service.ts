@@ -40,6 +40,17 @@ export class ContactService {
     return this.contactRepository.findOneByPhone(phone);
   }
 
+  async deleteByPhone(phone: string) {
+    return this.contactRepository.softDeleteByPhone(phone);
+  }
+
+  async deleteByPhones(phones: string[]) {
+    if (!phones || phones.length == 0)
+      throw new BadRequestException('삭제할 이름 또는 전화번호를 제공해야 합니다.')
+
+    return this.contactRepository.softDeleteByPhones(phones);
+  }
+
   update(id: number, updateContactDto: UpdateContactDto) {
     return `This action updates a #${id} contact`;
   }

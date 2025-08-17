@@ -34,6 +34,16 @@ export class ContactController {
     return this.contactService.findOneByPhone(phone);
   }
 
+  @Delete('/:phone')
+  async deleteByPhone(@Param('phone') phone: string) {
+    await this.contactService.deleteByPhone(phone);
+  }
+
+  @Delete('/')
+  async deleteByPhones(@Body('phones') phones: string[]) {
+    await this.contactService.deleteByPhones(phones);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateContactDto: UpdateContactDto) {
     return this.contactService.update(+id, updateContactDto);

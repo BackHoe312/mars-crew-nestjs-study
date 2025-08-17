@@ -51,16 +51,16 @@ export class ContactRepository extends Repository<Contact> {
     }
 
     async softDeleteByPhone(phone: string): Promise<void> {
-        await this.softDelete(phone);
+        await await this.createQueryBuilder()
+            .softDelete()
+            .where('phone = :phone', {phone})
+            .execute()
     }
 
-    async softDeleteByNames(names: string[]): Promise<void> {
-        if (!names || names.length === 0)
-            throw new BadRequestException('삭제할 이름 또는 전화번호를 제공해야 합니다.')
-
+    async softDeleteByPhones(phones: string[]): Promise<void> {
         await this.createQueryBuilder()
         .softDelete()
-        .where('name IN (:...names)', {names})
+        .where('phone IN (:...phones)', {phones})
         .execute();
     }
 }
