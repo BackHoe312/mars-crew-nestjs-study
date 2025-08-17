@@ -1,12 +1,45 @@
-import { Repository } from "typeorm";
+import { IsNull, Not, Repository } from "typeorm";
 import { Contact } from "../domain/contact.entity";
 import { CustomRepository } from "src/common/typeorm-ex.decorator";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ConflictException } from "@nestjs/common";
+import { UpdateContactDto } from "../dto/request/update-contact.dto";
+import { CreateContactDto } from "../dto/request/create-contact.dto";
 
 @CustomRepository(Contact)
-export class ContactRepository extends Repository<Contact> { 
-    async existsByPhone(phone: string): Promise<boolean> {
-        return (await this.count({where: { phone: phone }}) > 0);
+export class ContactRepository extends Repository<Contact> {
+    async createContact(dto: CreateContactDto): Promise<Contact> {
+        const entity = this.create(dto);
+        return await this.save(entity);
+    }
+
+    /**
+     * 삭제 유무 확인
+     * @param phone 전화번호
+     * @returns 
+     */
+    async isDeletedContact(id: number): Promise<boolean> {
+        const isDeleted = await this.findOne({where: { id, deleteAt: Not(IsNull()) }});
+
+        return !!isDeleted;
+    }
+
+    async findIdByName(name: string): Promise<number | null> {
+        const contact = await this.findOne({
+            where: {name},
+            select: ['id']
+        });
+        
+
+        return contact ? contact.id : null;
+    }
+
+    async findIdByPhone(phone: string): Promise<number | null> {
+        const contact = await this.findOne({
+            where: {phone},
+            select: ['id']
+        });
+
+        return contact ? contact.id : null;
     }
 
     // async findAllByName(name: string): Promise<Contact[]> {
@@ -25,6 +58,11 @@ export class ContactRepository extends Repository<Contact> {
     //     return await qb.getMany();
     // }
 
+    /**
+     * 이름 또는 전화번호를 이용한 조회
+     * @param param0 name, phone
+     * @returns 
+     */
     async findAllByQuery({
         name,
         phone,
@@ -46,21 +84,39 @@ export class ContactRepository extends Repository<Contact> {
         return this.findOne({where: { phone }});
     }
 
-    async softDeleteByName(name: string): Promise<void> {
-        await this.softDelete(name);
+    /**
+     * 단일 전화번호 소프트 삭제
+     * @param id id
+     */
+    async softDeleteContact(id: number) {
+        return await this.softDelete(id);
     }
 
-    async softDeleteByPhone(phone: string): Promise<void> {
-        await await this.createQueryBuilder()
+    // async softDeleteByPhone(phone: string): Promise<void> {
+    //     await await this.createQueryBuilder()
+    //         .softDelete()
+    //         .where('phone = :phone', {phone})
+    //         .execute()
+    // }
+
+    /**
+     * 전화번호 다중 소프트 삭제
+     * @param ids id
+     */
+    async softDeleteContacts(ids: number[]) {
+        return (await this.createQueryBuilder()
             .softDelete()
-            .where('phone = :phone', {phone})
-            .execute()
+            .where('id IN (:...ids)', {ids})
+            .execute());
     }
 
-    async softDeleteByPhones(phones: string[]): Promise<void> {
-        await this.createQueryBuilder()
-        .softDelete()
-        .where('phone IN (:...phones)', {phones})
-        .execute();
+    async updatePhone(id: number, dto: UpdateContactDto): Promise<boolean> {
+        const result = await this.createQueryBuilder()
+            .update(Contact)
+            .set({phone: dto.updatePhone})
+            .where('id = :id AND deleteAt is NULL', {id})
+            .execute();
+
+        return result.affected !== 0;
     }
 }

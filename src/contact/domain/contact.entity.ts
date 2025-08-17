@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity({name: 'tb_contacts'})
-@Unique(['phone'])
+// @Unique(['phone'])
 export class Contact {
     @PrimaryGeneratedColumn()
     id: number;

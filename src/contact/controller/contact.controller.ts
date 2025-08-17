@@ -9,24 +9,15 @@ export class ContactController {
 
   @Post()
   create(@Body() createContactDto: CreateContactDto) {
-    console.log(createContactDto);
     return this.contactService.create(createContactDto);
   }
-
-  // @Get('/search')
-  // findAll() {
-  //   return this.contactService.findAll();
-  // }
 
   @Get('/search')
   async search(
     @Query('name') name?: string,
     @Query('phone') phone?: string
   ) {
-
     return this.contactService.findAllByQuery({name, phone});
-
-    throw new BadRequestException('이름 또는 전화번호를 제공해야 합니다.')
   }
 
   @Get('/search/:phone')
@@ -36,21 +27,24 @@ export class ContactController {
 
   @Delete('/:phone')
   async deleteByPhone(@Param('phone') phone: string) {
-    await this.contactService.deleteByPhone(phone);
+    return await this.contactService.deleteByPhone(phone);
   }
 
   @Delete('/')
   async deleteByPhones(@Body('phones') phones: string[]) {
-    await this.contactService.deleteByPhones(phones);
+    return await this.contactService.deleteByPhones(phones);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateContactDto: UpdateContactDto) {
-    return this.contactService.update(+id, updateContactDto);
+  @Patch(':phone')
+  async update(
+    @Param('phone') phone: string,
+    @Body() dto: UpdateContactDto
+  ) {
+    await this.contactService.updateByPhone(phone, dto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.contactService.remove(+id);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateContactDto: UpdateContactDto) {
+  //   return this.contactService.update(+id, updateContactDto);
+  // }
 }
