@@ -1,7 +1,7 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
 
 @Entity({name: 'tb_contacts'})
-// @Unique(['phone'])
+@Unique('uq_phone', ['phone', 'not_archived'])
 export class Contact {
     @PrimaryGeneratedColumn()
     id: number;
@@ -23,14 +23,28 @@ export class Contact {
     phone: string;
 
     @CreateDateColumn({
-        type: 'datetime',
+        type: 'timestamp',
         nullable: false
     })
     createAt: Date;
 
+    @UpdateDateColumn({
+        type: 'timestamp',
+        nullable: true,
+    })
+    updateAt: Date;
+
     @DeleteDateColumn({
-        type: 'datetime',
+        type: 'timestamp',
         nullable: true
     })
-    deleteAt: Date | null;
+    deleteAt: Date;
+
+    @Column({
+        type: 'boolean',
+        generatedType: 'VIRTUAL',
+        asExpression: 'IF(deleteAt IS NULL, 1, NULL)',
+        nullable: true,
+    })
+    not_archived: string;
 }
