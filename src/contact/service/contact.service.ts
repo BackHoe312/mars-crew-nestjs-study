@@ -18,10 +18,6 @@ export class ContactService {
   }
 
   async findAllByQuery(query: {name?: string; phone?: string}) {
-    const {name, phone} = query;
-    if (!name && !phone)
-      throw new BadRequestException('이름 또는 전화번호를 제공해야 합니다.')
-
     return this.contactRepository.findAllByQuery(query);
   }
 
