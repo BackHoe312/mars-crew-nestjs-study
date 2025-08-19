@@ -3,8 +3,8 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedCol
 @Entity({name: 'tb_contacts'})
 @Unique('uq_phone', ['phone', 'not_archived'])
 export class Contact {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn({ name: 'id' })
+    contact_id: number;
 
     @Column({
         type: 'varchar',
