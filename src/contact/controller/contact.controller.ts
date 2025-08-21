@@ -45,7 +45,7 @@ export class ContactController {
   // 다중 삭제
   @Delete('/')
   async deleteContactsByIds(@Body() dto: DeleteContactDto) {
-    return this.contactService.deleteContactsByIds(dto.ids);
+    return this.contactService.deleteContactsByIds(dto);
   }
 
   // 수정
