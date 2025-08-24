@@ -1,28 +1,28 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import { UserService } from '../service/user.service';
-import { CreateUserDto } from '../dto/create-user.dto';
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { User } from '../domain/user.entity';
+import { SaveUserDto } from '../dto/request/save-user.dto';
+import { LoginUserDto } from '../dto/request/login-user.dto';
 
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @ApiOperation({ summary: '회원가입' })
+  @ApiBody({ type: SaveUserDto })
+  @Post('/save')
+  public async save(@Body() dto: SaveUserDto): Promise<User> {
+    return this.userService.save(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
+  @ApiOperation({ summary: '로그인' })
+  @ApiBody({ type: LoginUserDto })
+  @Post('/login')
+  public async login(@Body() dto: LoginUserDto): Promise<{ id: number }> {
+    const userId = (await this.userService.login(dto)).userId;
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+    return { id: userId };
   }
 }
