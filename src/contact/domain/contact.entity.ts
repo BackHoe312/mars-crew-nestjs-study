@@ -12,10 +12,10 @@ import {
 } from 'typeorm';
 
 @Entity({ name: 'tb_contacts' })
-@Unique('uq_phone', ['phone', 'not_archived'])
+@Unique('uq_phone', ['phone', 'not_archived', 'userId'])
 export class Contact {
   @PrimaryGeneratedColumn({ name: 'id' })
-  contact_id: number;
+  contactId: number;
 
   @Column({
     type: 'varchar',

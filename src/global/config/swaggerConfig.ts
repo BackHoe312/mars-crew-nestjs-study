@@ -16,6 +16,15 @@ const swaggerConfig = (app: INestApplication): void => {
     .setTitle('CONTACT API')
     .setDescription('CONTACT API documentation')
     .setVersion('1.0.0')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-user-id',
+        in: 'header',
+        description: 'User ID received upon successful login',
+      },
+      'x-user-id',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, options);

@@ -37,9 +37,9 @@ export class ContactService {
     };
   }
 
-  async findOneById(userId: number, contact_id: number) {
+  async findOneById(userId: number, contactId: number) {
     const contact = await this.contactRepository.findOne({
-      where: { userId, contact_id },
+      where: { userId, contactId },
     });
 
     if (!contact) throw new NotFoundException('존재하지 않는 연락처입니다.');
@@ -47,10 +47,10 @@ export class ContactService {
     return contact;
   }
 
-  async deleteContactById(userId: number, contact_id: number) {
+  async deleteContactById(userId: number, contactId: number) {
     const result = await this.contactRepository.softDelete({
       userId,
-      contact_id,
+      contactId,
     });
 
     if (result.affected === 0)
@@ -61,7 +61,7 @@ export class ContactService {
 
   async deleteContactsByIds(userId: number, dto: DeleteContactDto) {
     const result = await this.contactRepository.softDelete({
-      contact_id: In(dto.ids),
+      contactId: In(dto.ids),
       userId,
     });
 
@@ -75,11 +75,11 @@ export class ContactService {
 
   async updateContactById(
     userId: number,
-    contact_id: number,
+    contactId: number,
     dto: UpdateContactDto,
   ) {
     const contact = await this.contactRepository.findOne({
-      where: { userId, contact_id },
+      where: { userId, contactId },
     });
     if (!contact) throw new NotFoundException('존재하지 않는 전화번호입니다.');
 
