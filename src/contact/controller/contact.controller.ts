@@ -7,53 +7,76 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ContactService } from '../service/contact.service';
 import { CreateContactDto } from '../dto/request/create-contact.dto';
 import { UpdateContactDto } from '../dto/request/update-contact.dto';
 import { SearchContactDto } from '../dto/response/search-contact.dto';
 import { DeleteContactDto } from '../dto/request/delete-contact.dto';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/common/util/guard/auth.guard';
+import { UserId } from 'src/common/decorator/user/user.decorator';
 
+@ApiTags('Contact')
+@ApiBearerAuth('x-user-id')
+@UseGuards(AuthGuard)
 @Controller('contact')
 export class ContactController {
   constructor(private readonly contactService: ContactService) {}
 
-  // 전화번호 생성
+  @ApiOperation({ summary: '전화번호부 생성' })
+  @ApiBody({ type: CreateContactDto })
   @Post()
-  async createContact(@Body() createContactDto: CreateContactDto) {
-    return this.contactService.createContact(createContactDto);
+  async createContact(
+    @UserId() userId: number,
+    @Body() createContactDto: CreateContactDto,
+  ) {
+    return this.contactService.createContact(userId, createContactDto);
   }
 
-  // 전화번호 조회
+  @ApiOperation({ summary: '전화번호부 조회' })
   @Get('/search')
-  async search(@Query() query: SearchContactDto) {
-    return this.contactService.findAllByQuery(query);
+  async search(@UserId() userId: number, @Query() dto: SearchContactDto) {
+    return this.contactService.findAllByQuery(userId, dto);
   }
 
-  // 단일 검색
-  @Get('/search/:contact_id')
-  async findByPhone(@Param('contact_id') contact_id: number) {
-    return this.contactService.findOneById(contact_id);
+  @ApiOperation({ summary: '전화번호부 단일 조회' })
+  @Get('/search/:contactId')
+  async findByPhone(
+    @UserId() userId: number,
+    @Param('contactId') contactId: number,
+  ) {
+    return this.contactService.findOneById(userId, contactId);
   }
 
-  // 단일 삭제
-  @Delete('/:contact_id')
-  async deleteContactByPhone(@Param('contact_id') contact_id: number) {
-    return this.contactService.deleteContactById(contact_id);
+  @ApiOperation({ summary: '전화번호부 단일 삭제' })
+  @Delete('/:contactId')
+  async deleteContactByPhone(
+    @UserId() userId: number,
+    @Param('contactId') contactId: number,
+  ) {
+    return this.contactService.deleteContactById(userId, contactId);
   }
 
-  // 다중 삭제
+  @ApiOperation({ summary: '전화번호부 다중 삭제' })
+  @ApiBody({ type: DeleteContactDto })
   @Delete('/')
-  async deleteContactsByIds(@Body() dto: DeleteContactDto) {
-    return this.contactService.deleteContactsByIds(dto);
+  async deleteContactsByIds(
+    @UserId() userId: number,
+    @Body() dto: DeleteContactDto,
+  ) {
+    return this.contactService.deleteContactsByIds(userId, dto);
   }
 
-  // 수정
-  @Patch(':contact_id')
+  @ApiOperation({ summary: '전화번호부 수정' })
+  @ApiBody({ type: UpdateContactDto })
+  @Patch(':contactId')
   async update(
-    @Param('contact_id') contact_id: number,
+    @UserId() userId: number,
+    @Param('contactId') contactId: number,
     @Body() dto: UpdateContactDto,
   ) {
-    return this.contactService.updateContactById(contact_id, dto);
+    return this.contactService.updateContactById(userId, contactId, dto);
   }
 }
