@@ -1,7 +1,6 @@
 import {
   BeforeInsert,
   Column,
-  CreateDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -10,10 +9,11 @@ import {
 import { UnauthorizedException } from '@nestjs/common';
 import { comparePassword, generatePassword } from 'src/common/util/password';
 import { Contact } from 'src/contact/domain/contact.entity';
+import { BaseTimeEntity } from 'src/common/domain/BaseTime.Entity';
 
 @Entity({ name: 'tb_users' })
 @Unique(['email'])
-export class User {
+export class User extends BaseTimeEntity {
   @PrimaryGeneratedColumn({ name: 'user_id' })
   userId: number;
 
@@ -40,13 +40,6 @@ export class User {
     comment: '비밀번호',
   })
   password: string;
-
-  @CreateDateColumn({
-    type: 'timestamp',
-    nullable: false,
-    comment: '생성날짜',
-  })
-  createAt: Date;
 
   @OneToMany(() => Contact, (contact) => contact.userId)
   contacts: Contact[];

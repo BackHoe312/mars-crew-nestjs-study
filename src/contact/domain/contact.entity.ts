@@ -1,19 +1,17 @@
+import { BaseTimeEntity } from 'src/common/domain/BaseTime.Entity';
 import { User } from 'src/user/domain/user.entity';
 import {
   Column,
-  CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
-  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'tb_contacts' })
 @Unique('uq_phone', ['phone', 'not_archived', 'userId'])
-export class Contact {
+export class Contact extends BaseTimeEntity {
   @PrimaryGeneratedColumn({ name: 'id' })
   contactId: number;
 
@@ -39,24 +37,6 @@ export class Contact {
   })
   @JoinColumn({ name: 'user_id' })
   userId: number;
-
-  @CreateDateColumn({
-    type: 'timestamp',
-    nullable: false,
-  })
-  createAt: Date;
-
-  @UpdateDateColumn({
-    type: 'timestamp',
-    nullable: true,
-  })
-  updateAt: Date;
-
-  @DeleteDateColumn({
-    type: 'timestamp',
-    nullable: true,
-  })
-  deleteAt: Date;
 
   @Column({
     type: 'boolean',
