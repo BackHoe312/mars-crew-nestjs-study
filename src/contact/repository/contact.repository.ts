@@ -6,12 +6,16 @@ import { SearchContactDto } from '../dto/response/search-contact.dto';
 
 @CustomRepository(Contact)
 export class ContactRepository extends Repository<Contact> {
-  async createContact(userId: number, dto: CreateContactDto): Promise<Contact> {
+  async createContact(userId: number, dto: CreateContactDto): Promise<number> {
     const entity = this.create({
       ...dto,
       userId,
     });
-    return this.save(entity);
+
+    const contact = await this.save(entity);
+    console.log(contact.contactId);
+
+    return contact.contactId;
   }
 
   /**

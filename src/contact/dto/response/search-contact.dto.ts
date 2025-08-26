@@ -21,11 +21,21 @@ export class SearchContactDto {
   @IsString()
   phone?: string;
 
+  @ApiProperty({
+    example: '1',
+    description: 'page',
+    required: false,
+  })
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   page?: number = 1;
 
+  @ApiProperty({
+    example: '10',
+    description: 'page limit',
+    required: false,
+  })
   @IsOptional()
   @IsNumber()
   @Type(() => Number)

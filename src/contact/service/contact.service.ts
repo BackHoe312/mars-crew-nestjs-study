@@ -10,44 +10,70 @@ import { In } from 'typeorm';
 import { ContactRepository } from '../repository/contact.repository';
 import { SearchContactDto } from '../dto/response/search-contact.dto';
 import { DeleteContactDto } from '../dto/request/delete-contact.dto';
+import { CommonResponse } from 'src/common/response/api.response';
 
 @Injectable()
 export class ContactService {
   constructor(private readonly contactRepository: ContactRepository) {}
 
-  async createContact(userId: number, dto: CreateContactDto): Promise<Contact> {
+  /**
+   * @description 연락처 저장
+   */
+  async createContact(userId: number, dto: CreateContactDto): Promise<any> {
     if (await this.contactRepository.existsBy({ userId, phone: dto.phone }))
       throw new ConflictException('이미 등록된 전화번호입니다.');
 
-    return this.contactRepository.createContact(userId, dto);
+    const contactId = await this.contactRepository.createContact(userId, dto);
+
+    return CommonResponse.createResponse({
+      data: {
+        contactId: contactId,
+      },
+      statusCode: 201,
+      message: '연락처가 등록되었습니다.',
+    });
   }
 
-  async findAllByQuery(userId: number, dto: SearchContactDto) {
-    const [data, total] = await this.contactRepository.findAllByPaging(
+  /**
+   * @description 연락처 다중 조회
+   */
+  async findAllByQuery(userId: number, dto: SearchContactDto): Promise<any> {
+    const [data, count] = await this.contactRepository.findAllByPaging(
       userId,
       dto,
     );
 
-    return {
+    return CommonResponse.createPaginationResponse({
       data,
-      total,
+      statusCode: 200,
+      message: '조회되었습니다.',
+      count,
       page: dto.page || 1,
       limit: dto.limit || 10,
-      totalPages: Math.ceil(total / (dto.limit || 10)),
-    };
+    });
   }
 
-  async findOneById(userId: number, contactId: number) {
-    const contact = await this.contactRepository.findOne({
+  /**
+   * @description 연락처 단일 조회
+   */
+  async findOneById(userId: number, contactId: number): Promise<any> {
+    const data = await this.contactRepository.findOne({
       where: { userId, contactId },
     });
 
-    if (!contact) throw new NotFoundException('존재하지 않는 연락처입니다.');
+    if (!data) throw new NotFoundException('존재하지 않는 연락처입니다.');
 
-    return contact;
+    return CommonResponse.createResponse({
+      data,
+      statusCode: 200,
+      message: '조회되었습니다.',
+    });
   }
 
-  async deleteContactById(userId: number, contactId: number) {
+  /**
+   * @description 연락처 단일 삭제
+   */
+  async deleteContactById(userId: number, contactId: number): Promise<any> {
     const result = await this.contactRepository.softDelete({
       userId,
       contactId,
@@ -56,10 +82,20 @@ export class ContactService {
     if (result.affected === 0)
       throw new NotFoundException('존재하지 않는 연락처입니다.');
 
-    return { deletedCount: result.affected };
+    return CommonResponse.createResponse({
+      statusCode: 200,
+      message: '삭제되었습니다.',
+      count: result.affected,
+    });
   }
 
-  async deleteContactsByIds(userId: number, dto: DeleteContactDto) {
+  /**
+   * @description 연락처 다중 삭제
+   */
+  async deleteContactsByIds(
+    userId: number,
+    dto: DeleteContactDto,
+  ): Promise<any> {
     const result = await this.contactRepository.softDelete({
       contactId: In(dto.ids),
       userId,
@@ -70,14 +106,21 @@ export class ContactService {
         '존재하지 않거나 이미 삭제된 전화번호 입니다.',
       );
 
-    return { deletedCount: result.affected };
+    return CommonResponse.createResponse({
+      statusCode: 200,
+      message: '삭제되었습니다.',
+      count: result.affected,
+    });
   }
 
+  /**
+   * @description 연락처 수정
+   */
   async updateContactById(
     userId: number,
     contactId: number,
     dto: UpdateContactDto,
-  ) {
+  ): Promise<any> {
     const contact = await this.contactRepository.findOne({
       where: { userId, contactId },
     });
@@ -87,7 +130,12 @@ export class ContactService {
     if (dto.updatePhone) contact.phone = dto.updatePhone;
 
     try {
-      return await this.contactRepository.save(contact);
+      await this.contactRepository.save(contact);
+
+      return CommonResponse.createResponse({
+        statusCode: 200,
+        message: '수정되었습니다.',
+      });
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY')
         throw new ConflictException(
