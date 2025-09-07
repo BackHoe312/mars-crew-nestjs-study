@@ -1,6 +1,6 @@
 import { BaseEntity, CreateDateColumn } from 'typeorm';
 
-export abstract class BaseTimeEntity extends BaseEntity {
+export abstract class BaseCreateTimeEntity extends BaseEntity {
   @CreateDateColumn({
     type: 'timestamp',
     nullable: false,
