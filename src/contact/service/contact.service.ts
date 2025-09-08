@@ -5,12 +5,12 @@ import {
 } from '@nestjs/common';
 import { CreateContactDto } from '../dto/request/create-contact.dto';
 import { UpdateContactDto } from '../dto/request/update-contact.dto';
-import { Contact } from '../domain/contact.entity';
 import { In } from 'typeorm';
 import { ContactRepository } from '../repository/contact.repository';
 import { SearchContactDto } from '../dto/response/search-contact.dto';
 import { DeleteContactDto } from '../dto/request/delete-contact.dto';
 import { CommonResponse } from 'src/common/response/api.response';
+import { Contact } from '../domain/contact.entity';
 
 @Injectable()
 export class ContactService {
@@ -19,38 +19,28 @@ export class ContactService {
   /**
    * @description 연락처 저장
    */
-  async createContact(userId: number, dto: CreateContactDto): Promise<any> {
+  async createContact(userId: number, dto: CreateContactDto): Promise<number> {
     if (await this.contactRepository.existsBy({ userId, phone: dto.phone }))
       throw new ConflictException('이미 등록된 전화번호입니다.');
 
     const contactId = await this.contactRepository.createContact(userId, dto);
 
-    return CommonResponse.createResponse({
-      data: {
-        contactId: contactId,
-      },
-      statusCode: 201,
-      message: '연락처가 등록되었습니다.',
-    });
+    return contactId;
   }
 
   /**
    * @description 연락처 다중 조회
    */
-  async findAllByQuery(userId: number, dto: SearchContactDto): Promise<any> {
+  async findAllByQuery(
+    userId: number,
+    dto: SearchContactDto,
+  ): Promise<{ data: Contact[]; count: number }> {
     const [data, count] = await this.contactRepository.findAllByPaging(
       userId,
       dto,
     );
 
-    return CommonResponse.createPaginationResponse({
-      data,
-      statusCode: 200,
-      message: '조회되었습니다.',
-      count,
-      page: dto.page || 1,
-      limit: dto.limit || 10,
-    });
+    return { data, count };
   }
 
   /**
@@ -63,30 +53,22 @@ export class ContactService {
 
     if (!data) throw new NotFoundException('존재하지 않는 연락처입니다.');
 
-    return CommonResponse.createResponse({
-      data,
-      statusCode: 200,
-      message: '조회되었습니다.',
-    });
+    return data;
   }
 
   /**
    * @description 연락처 단일 삭제
    */
-  async deleteContactById(userId: number, contactId: number): Promise<any> {
+  async deleteContactById(userId: number, contactId: number): Promise<number> {
     const result = await this.contactRepository.softDelete({
       userId,
       contactId,
     });
 
-    if (result.affected === 0)
+    if (!result.affected)
       throw new NotFoundException('존재하지 않는 연락처입니다.');
 
-    return CommonResponse.createResponse({
-      statusCode: 200,
-      message: '삭제되었습니다.',
-      count: result.affected,
-    });
+    return result.affected;
   }
 
   /**
@@ -95,22 +77,16 @@ export class ContactService {
   async deleteContactsByIds(
     userId: number,
     dto: DeleteContactDto,
-  ): Promise<any> {
+  ): Promise<number> {
     const result = await this.contactRepository.softDelete({
       contactId: In(dto.ids),
       userId,
     });
 
-    if (result.affected === 0)
-      throw new NotFoundException(
-        '존재하지 않거나 이미 삭제된 전화번호 입니다.',
-      );
+    if (!result.affected)
+      throw new NotFoundException('존재하지 않는 연락처입니다.');
 
-    return CommonResponse.createResponse({
-      statusCode: 200,
-      message: '삭제되었습니다.',
-      count: result.affected,
-    });
+    return result.affected;
   }
 
   /**
@@ -120,7 +96,7 @@ export class ContactService {
     userId: number,
     contactId: number,
     dto: UpdateContactDto,
-  ): Promise<any> {
+  ): Promise<void> {
     const contact = await this.contactRepository.findOne({
       where: { userId, contactId },
     });
@@ -131,11 +107,6 @@ export class ContactService {
 
     try {
       await this.contactRepository.save(contact);
-
-      return CommonResponse.createResponse({
-        statusCode: 200,
-        message: '수정되었습니다.',
-      });
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY')
         throw new ConflictException(

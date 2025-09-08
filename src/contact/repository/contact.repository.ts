@@ -13,7 +13,6 @@ export class ContactRepository extends Repository<Contact> {
     });
 
     const contact = await this.save(entity);
-    console.log(contact.contactId);
 
     return contact.contactId;
   }

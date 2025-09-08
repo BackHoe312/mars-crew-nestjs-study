@@ -9,7 +9,10 @@ import {
 } from '@nestjs/swagger';
 import { SaveUserDto } from '../dto/request/save-user.dto';
 import { LoginUserDto } from '../dto/request/login-user.dto';
-import { createServerExceptionResponse } from 'src/common/response/api.response';
+import { createServerExceptionResponse } from 'src/global/response/common/index';
+import { RefreshTokenDto } from '../dto/request/refresh-token.dto';
+import { UserResponse } from 'src/global/response/user/user.response';
+import { CommonResponse } from 'src/common/response/api.response';
 
 @ApiTags('User')
 @ApiInternalServerErrorResponse(createServerExceptionResponse())
@@ -19,24 +22,51 @@ export class UserController {
 
   @ApiOperation({ summary: '회원가입' })
   @ApiBody({ type: SaveUserDto })
-  @ApiResponse({
-    status: 201,
-    description: '회원가입 완료',
-  })
+  @ApiResponse(UserResponse.save[201])
+  @ApiResponse(UserResponse.save[409])
+  @ApiResponse(UserResponse.save[500])
   @Post('/save')
   public async save(@Body() dto: SaveUserDto) {
-    return this.userService.save(dto);
+    await this.userService.save(dto);
+
+    return CommonResponse.createResponse({
+      statusCode: 201,
+      message: '가입이 완료되었습니다.',
+    });
   }
 
   @ApiOperation({ summary: '로그인' })
   @ApiBody({ type: LoginUserDto })
-  @ApiResponse({
-    status: 200,
-    description: '로그인 완료',
-  })
+  @ApiResponse(UserResponse.login[200])
+  @ApiResponse(UserResponse.login[401])
+  @ApiResponse(UserResponse.login[404])
   @Post('/login')
   @HttpCode(200)
   public async login(@Body() dto: LoginUserDto) {
-    return this.userService.login(dto);
+    const { accessToken, refreshToken } = await this.userService.login(dto);
+
+    return CommonResponse.createResponse({
+      data: { accessToken, refreshToken },
+      statusCode: 200,
+      message: '로그인되었습니다.',
+    });
+  }
+
+  @ApiOperation({ summary: '토큰 갱신' })
+  @ApiBody({ type: RefreshTokenDto })
+  @ApiResponse(UserResponse.refresh[200])
+  @ApiResponse(UserResponse.refresh[401])
+  @Post('/refresh')
+  @HttpCode(200)
+  public async refresh(@Body() dto: RefreshTokenDto) {
+    const accessToken = await this.userService.refreshAccessToken(
+      dto.refreshToken,
+    );
+
+    return CommonResponse.createResponse({
+      data: { accessToken },
+      statusCode: 200,
+      message: '갱신되었습니다.',
+    });
   }
 }

@@ -28,13 +28,11 @@ export class CommonResponse<T> {
     readonly data?: T;
     readonly statusCode: number;
     readonly message: string;
-    readonly count?: number;
   }): CommonResponse<T> {
     return new CommonResponse<T>({
-      data: payload?.data,
       statusCode: payload.statusCode,
       message: payload.message,
-      count: payload?.count,
+      data: payload?.data,
     });
   }
 
@@ -47,26 +45,12 @@ export class CommonResponse<T> {
     readonly limit: number;
   }): CommonResponse<T> {
     return new CommonResponse<T>({
-      data: payload.data,
       statusCode: payload.statusCode,
       message: payload.message,
+      data: payload.data,
       count: payload.count,
       page: payload.page,
       limit: payload.limit,
     });
   }
 }
-
-export const createServerExceptionResponse = () => {
-  return {
-    status: 500,
-    description: '서버 오류가 발생했습니다.',
-    schema: {
-      example: {
-        status: 500,
-        message: '서버 에러가 발생했습니다.',
-        error: 'Internal Server Error',
-      },
-    },
-  };
-};
