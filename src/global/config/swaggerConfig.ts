@@ -16,14 +16,14 @@ const swaggerConfig = (app: INestApplication): void => {
     .setTitle('CONTACT API')
     .setDescription('CONTACT API documentation')
     .setVersion('1.0.0')
-    .addApiKey(
+    .addBearerAuth(
       {
-        type: 'apiKey',
-        name: 'x-user-id',
+        type: 'http',
+        scheme: 'Bearer',
+        name: 'JWT',
         in: 'header',
-        description: 'User ID received upon successful login',
       },
-      'x-user-id',
+      'access-token',
     )
     .build();
 

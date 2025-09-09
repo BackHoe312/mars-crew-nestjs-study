@@ -7,7 +7,12 @@ import {
   Unique,
 } from 'typeorm';
 import { UnauthorizedException } from '@nestjs/common';
-import { comparePassword, generatePassword } from 'src/common/util/password';
+import {
+  comparePassword,
+  compareRefreshToken,
+  generateHashRefreshToken,
+  generatePassword,
+} from 'src/common/util/encrypt';
 import { Contact } from 'src/contact/domain/contact.entity';
 import { BaseTimeEntity } from 'src/common/domain/BaseTime.Entity';
 
@@ -41,6 +46,14 @@ export class User extends BaseTimeEntity {
   })
   password: string;
 
+  @Column({
+    name: 'refresh_token',
+    type: 'text',
+    nullable: true,
+    comment: 'Refresh Token',
+  })
+  refreshToken: string;
+
   @OneToMany(() => Contact, (contact) => contact.userId)
   contacts: Contact[];
 
@@ -57,5 +70,18 @@ export class User extends BaseTimeEntity {
       throw new UnauthorizedException(
         '이메일 또는 비밀번호가 올바르지 않습니다.',
       );
+  }
+
+  public async hashRefreshToken(refreshToken: string): Promise<string> {
+    const hashedRefreshToken = await generateHashRefreshToken(refreshToken);
+
+    return hashedRefreshToken;
+  }
+
+  public async validationRefreshToken(refreshToken: string): Promise<void> {
+    const isValid = await compareRefreshToken(refreshToken, this.refreshToken);
+
+    if (!isValid)
+      throw new UnauthorizedException('Refresh Token이 유효하지 않습니다.');
   }
 }
