@@ -1,7 +1,12 @@
-import { IsArray, IsNumber } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsNumber } from 'class-validator';
 
 export class DeleteContactDto {
-    @IsArray()
-    @IsNumber({}, {each: true})
-    ids: number[];
+  @ApiProperty({
+    example: '[1, 2, 3]',
+    description: 'Contact id array to Delete',
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  ids: number[];
 }

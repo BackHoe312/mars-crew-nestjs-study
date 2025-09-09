@@ -4,12 +4,15 @@ import { ContactController } from './controller/contact.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contact } from './domain/contact.entity';
 import { ContactRepository } from './repository/contact.repository';
-import { TypeOrmExModule } from 'src/common/typeorm-ex.module';
+import { TypeOrmExModule } from 'src/common/repository/typeorm-ex.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Contact]), TypeOrmExModule.forCustomRepository([ContactRepository])],
+  imports: [
+    TypeOrmModule.forFeature([Contact]),
+    TypeOrmExModule.forCustomRepository([ContactRepository]),
+  ],
   controllers: [ContactController],
   providers: [ContactService],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule],
 })
 export class ContactModule {}

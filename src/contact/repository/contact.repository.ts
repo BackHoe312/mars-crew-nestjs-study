@@ -1,14 +1,20 @@
 import { Repository } from 'typeorm';
 import { Contact } from '../domain/contact.entity';
-import { CustomRepository } from 'src/common/typeorm-ex.decorator';
+import { CustomRepository } from 'src/common/repository/typeorm-ex.decorator';
 import { CreateContactDto } from '../dto/request/create-contact.dto';
 import { SearchContactDto } from '../dto/response/search-contact.dto';
 
 @CustomRepository(Contact)
 export class ContactRepository extends Repository<Contact> {
-  async createContact(dto: CreateContactDto): Promise<Contact> {
-    const entity = this.create(dto);
-    return this.save(entity);
+  async createContact(userId: number, dto: CreateContactDto): Promise<number> {
+    const entity = this.create({
+      ...dto,
+      userId,
+    });
+
+    const contact = await this.save(entity);
+
+    return contact.contactId;
   }
 
   /**
@@ -17,15 +23,17 @@ export class ContactRepository extends Repository<Contact> {
    * @returns
    */
   async findAllByPaging(
-    query: SearchContactDto,
+    userId: number,
+    dto: SearchContactDto,
   ): Promise<[Contact[], number, number]> {
-    const { name, phone, page = 1, limit = 10 } = query;
+    const { name, phone, page = 1, limit = 10 } = dto;
 
     const qb = this.createQueryBuilder('c');
 
     if (name)
       qb.andWhere('LOWER(c.name) LIKE LOWER(:name)', { name: `%${name}%` });
     if (phone) qb.andWhere('c.phone LIKE :phone', { phone: `%${phone}%` });
+    qb.andWhere('c.user_id = :userId', { userId: userId });
 
     qb.skip((page - 1) * limit)
       .take(limit)
