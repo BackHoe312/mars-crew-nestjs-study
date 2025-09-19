@@ -4,6 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 import swaggerConfig from './global/config/swaggerConfig';
+import { LoggingInterceptor } from './common/interceptor/LoggingInterceptor';
+import { HttpExceptionFilter } from './global/filter/HttpExceptionFilter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +22,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   if (['development', 'local'].includes(NODE_ENV)) {
     swaggerConfig(app);
